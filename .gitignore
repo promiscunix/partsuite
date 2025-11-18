@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Nix
+.result
+.direnv/
+
+# Local data / outputs
+invoices.db
+*.pdf
+*.csv
+out/
+tmp/
+*.log
+
+# Editor junk
+*.swp
+*~
+.vscode/
+.idea/

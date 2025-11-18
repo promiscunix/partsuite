@@ -1,0 +1,44 @@
+{
+  description = "Invoice OCR + extraction dev environment";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+
+  outputs = {
+    self,
+    nixpkgs,
+  }: let
+    systems = ["x86_64-linux"];
+    forAllSystems = f:
+      nixpkgs.lib.genAttrs systems (
+        system: let
+          pkgs = import nixpkgs {inherit system;};
+          pythonEnv = pkgs.python3.withPackages (ps:
+            with ps; [
+              pypdf2 # PyPDF2 – PDF reading/splitting :contentReference[oaicite:1]{index=1}
+              dateutil # python-dateutil for parsing dates :contentReference[oaicite:2]{index=2}
+              rich # pretty tables/logging in the terminal :contentReference[oaicite:3]{index=3}
+            ]);
+        in
+          f system pkgs pythonEnv
+      );
+  in {
+    devShells = forAllSystems (system: pkgs: pythonEnv: {
+      default = pkgs.mkShell {
+        packages = [
+          pythonEnv
+          pkgs.ocrmypdf # wraps Tesseract to add OCR to PDFs :contentReference[oaicite:4]{index=4}
+          pkgs.tesseract
+          pkgs.poppler_utils # pdftotext etc (handy for debugging)
+          pkgs.ghostscript
+          pkgs.qpdf
+          pkgs.unpaper
+        ];
+
+        shellHook = ''
+          echo "Invoice dev shell ready."
+          echo "Try: python invoice_pipeline.py bulk_scan.pdf --output-dir out_invoices --db invoices.db"
+        '';
+      };
+    });
+  };
+}
