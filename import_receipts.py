@@ -21,6 +21,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from invoice_pipeline import normalize_part
+
 
 RECEIPT_CODES = {"R", "O"}
 
@@ -123,8 +125,9 @@ def import_receipts(csv_path: Path, db_path: Path, source: str) -> None:
             if code not in RECEIPT_CODES:
                 continue
 
-            part = (row.get(COL_PART) or "").strip()
-            if not part:
+            part_raw = (row.get(COL_PART) or "").strip()
+            part = normalize_part(part_raw)
+            if not part or part == "0":
                 continue
 
             qty_str = (row.get(COL_QTY) or "").strip()

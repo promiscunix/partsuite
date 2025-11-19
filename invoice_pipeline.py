@@ -50,14 +50,46 @@ console = Console()
 
 # -------------------- Data structures -------------------- #
 
+def normalize_part(part: str) -> str:
+    """
+    Canonicalize a part number for this system:
+
+    - Keep only letters and digits
+    - Uppercase
+    - Strip leading zeros
+
+    Examples:
+      ' 0VU01321-AC ' -> 'VU01321AC'
+      '0651-2211 aa'  -> '6512211AA'
+    """
+    if not part:
+        return ""
+    # Keep only A–Z, a–z, 0–9
+    s = re.sub(r"[^0-9A-Za-z]", "", part)
+    s = s.upper()
+
+    # Strip leading zeros
+    i = 0
+    while i < len(s) and s[i] == "0":
+        i += 1
+    s = s[i:]
+
+    # If it becomes empty, keep a single "0" just so we have something
+    return s or "0"
+
+
 @dataclass
 class LineItem:
     raw_line: str
-    part_number: Optional[str] = None
-    description: Optional[str] = None
-    quantity: Optional[float] = None
-    unit_price: Optional[float] = None
-    line_total: Optional[float] = None
+    part_number: str
+    description: str
+    quantity: float
+    unit_price: float
+    line_total: float
+
+    def __post_init__(self) -> None:
+        # Always store canonical part numbers in the DB
+        self.part_number = normalize_part(self.part_number)
 
 
 @dataclass
