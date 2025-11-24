@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices – Invoice Master{% endblock %}
+
+{% block content %}
+  <section>
+    <h2>Invoices</h2>
+
+    {% if rows|length == 0 %}
+      <p>No invoices in the system yet.</p>
+      <p>Upload an FCA invoice via the API docs at <a href="/docs" target="_blank">/docs</a>, then refresh this page.</p>
+    {% else %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Supplier</th>
+            <th>Invoice #</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Subtotal</th>
+            <th>GST/HST</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% set inv = row.invoice %}
+            <tr>
+              <td>{{ inv.id }}</td>
+              <td>{{ row.supplier_name }}</td>
+              <td>{{ inv.invoice_number }}</td>
+              <td>{{ inv.invoice_date }}</td>
+              <td>
+                {% if inv.document_type == "credit_memo" %}
+                  <span style="color: #dc3545;">Credit Memo</span>
+                {% else %}
+                  Invoice
+                {% endif %}
+                {% if inv.is_d2d == True or inv.is_d2d == 1 %}
+                  <br><small style="color: #0d6efd; font-weight: bold;">D2D: {{ inv.d2d_type if inv.d2d_type else "D2D" }}</small>
+                {% endif %}
+              </td>
+              <td class="num">{{ "%.2f"|format(inv.subtotal) }}</td>
+              <td class="num">{{ "%.2f"|format(inv.tax_amount) }}</td>
+              <td class="num">{{ "%.2f"|format(inv.total_amount) }}</td>
+              <td><a class="btn-small" href="/ui/invoices/{{ inv.id }}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </section>
+{% endblock %}
+

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Home – Invoice Master{% endblock %}
+
+{% block content %}
+  <section>
+    <h2>Welcome</h2>
+    <p>
+      This is your internal invoice hub. From here you can:
+    </p>
+    <ul>
+      <li>Upload bulk PDF files containing supplier invoices</li>
+      <li>View all imported invoices</li>
+      <li>Drill into an invoice for full detail</li>
+      <li>See how an FCA invoice is coded for accounting</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Upload Invoice PDF</h2>
+    <p>Upload a PDF file containing one or more supplier invoices. The system will automatically:</p>
+    <ul>
+      <li>Detect invoice boundaries</li>
+      <li>Split into individual invoices</li>
+      <li>Extract metadata (supplier, invoice number, date, totals)</li>
+      <li>Extract line items</li>
+    </ul>
+
+    <form id="upload-form" enctype="multipart/form-data">
+      <div id="upload-area" class="upload-area">
+        <p>📄 Drag and drop a PDF file here, or click the button below to browse</p>
+        <input type="file" id="file-input" name="file" accept=".pdf,application/pdf" style="display: none;">
+        <button type="button" class="btn" style="margin-top: 0.5rem;" onclick="document.getElementById('file-input').click();">Choose File</button>
+        <div id="file-name" style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;"></div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <label>
+          <input type="checkbox" id="do-ocr" name="do_ocr">
+          Run OCR (for image-only/scanned PDFs)
+        </label>
+      </div>
+      <button type="submit" class="btn" style="margin-top: 1rem;" id="upload-btn" disabled>Upload</button>
+    </form>
+
+    <div id="upload-status" style="margin-top: 1rem; display: none;"></div>
+  </section>
+
+  <section style="margin-top: 2rem;">
+    <a class="btn" href="/ui/invoices">View All Invoices</a>
+  </section>
+
+  <script>
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const uploadForm = document.getElementById('upload-form');
+    const uploadBtn = document.getElementById('upload-btn');
+    const uploadStatus = document.getElementById('upload-status');
+
+    // Drag and drop handlers
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.style.background = '#f0f0f0';
+    });
+
+    uploadArea.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.style.background = '#f0f0f0';
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.style.background = '';
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.style.background = '';
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        // Check if it's a PDF
+        const file = files[0];
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          // Try to assign files directly (works in modern browsers)
+          try {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+          } catch (err) {
+            // Fallback: trigger the file input programmatically
+            console.log('Using fallback file assignment');
+          }
+          // Update display
+          const fileName = document.getElementById('file-name');
+          fileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          fileName.style.color = '#155724';
+          updateUploadButton();
+        } else {
+          alert('Please select a PDF file');
+        }
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const fileName = document.getElementById('file-name');
+      if (fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        fileName.style.color = '#155724';
+      } else {
+        fileName.textContent = '';
+      }
+      updateUploadButton();
+    });
+
+    function updateUploadButton() {
+      const hasFile = fileInput.files && fileInput.files.length > 0;
+      uploadBtn.disabled = !hasFile;
+      if (hasFile) {
+        uploadBtn.textContent = 'Upload';
+      } else {
+        uploadBtn.textContent = 'Upload';
+      }
+    }
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('do_ocr', document.getElementById('do-ocr').checked ? 'true' : 'false');
+
+      uploadBtn.disabled = true;
+      uploadStatus.style.display = 'block';
+      uploadStatus.innerHTML = '<p>Uploading and processing PDF...</p>';
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const skippedMsg = data.invoices_skipped > 0 
+            ? `<p style="color: #856404; background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;">
+                ⚠ ${data.invoices_skipped} duplicate invoice(s) were skipped (already exist in database)
+               </p>`
+            : '';
+          
+          uploadStatus.innerHTML = `
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 1rem; color: #155724;">
+              <strong>✓ Success!</strong>
+              <p>${data.message}</p>
+              ${skippedMsg}
+              ${data.invoices.length > 0 ? `
+                <p>Invoice(s) processed:</p>
+                <ul>
+                  ${data.invoices.map(inv => `
+                    <li>
+                      <a href="/ui/invoices/${inv.invoice_id}">${inv.supplier_name} - ${inv.invoice_number || 'Unknown'}</a>
+                      (${inv.invoice_date || 'No date'}) - $${inv.total_amount.toFixed(2)}
+                    </li>
+                  `).join('')}
+                </ul>
+              ` : ''}
+              <p><a href="/ui/invoices" class="btn">View All Invoices</a></p>
+            </div>
+          `;
+          fileInput.value = '';
+          updateUploadButton();
+        } else {
+          uploadStatus.innerHTML = `
+            <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 1rem; color: #721c24;">
+              <strong>✗ Error:</strong> ${data.detail || 'Upload failed'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        uploadStatus.innerHTML = `
+          <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 1rem; color: #721c24;">
+            <strong>✗ Error:</strong> ${error.message}
+          </div>
+        `;
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+  </script>
+{% endblock %}
+

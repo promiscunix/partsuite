@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ invoice.invoice_number }} – Invoice Master{% endblock %}
+
+{% block content %}
+  <section>
+    <h2>Invoice Detail</h2>
+
+    <div class="card">
+      <h3>Header</h3>
+      <div class="grid-2">
+        <div>
+          <p><strong>Supplier:</strong> {{ supplier_name }}</p>
+          <p><strong>Invoice #:</strong> {{ invoice.invoice_number }}</p>
+          <p><strong>Date:</strong> {{ invoice.invoice_date }}</p>
+        </div>
+        <div>
+          <p><strong>Status:</strong> {{ invoice.status }}</p>
+          <p><strong>PDF:</strong>
+            {% if invoice.pdf_path %}
+              <code>{{ invoice.pdf_path }}</code>
+            {% else %}
+              <em>Not stored</em>
+            {% endif %}
+          </p>
+          <p>
+            <a class="btn-small" href="/invoices/{{ invoice.id }}/summary-pdf" target="_blank">
+              Download summary page PDF
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Totals</h3>
+      <table class="table compact">
+        <tbody>
+          <tr>
+            <th>Subtotal (TOTAL GROSS AMOUNT)</th>
+            <td class="num">{{ "%.2f"|format(invoice.subtotal) }}</td>
+          </tr>
+          <tr>
+            <th>Freight (locator + transportation)</th>
+            <td class="num">{{ "%.2f"|format(invoice.freight) }}</td>
+          </tr>
+          <tr>
+            <th>Environmental fees</th>
+            <td class="num">{{ "%.2f"|format(invoice.env_fees) }}</td>
+          </tr>
+          <tr>
+            <th>GST/HST</th>
+            <td class="num">{{ "%.2f"|format(invoice.tax_amount) }}</td>
+          </tr>
+          <tr>
+            <th>Net invoice amount</th>
+            <td class="num total">{{ "%.2f"|format(invoice.total_amount) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>FCA Summary Fields</h3>
+      <table class="table compact">
+        <tbody>
+          <tr>
+            <th>Discounts earned</th>
+            <td class="num">{{ "%.2f"|format(invoice.discounts_earned) }}</td>
+          </tr>
+          <tr>
+            <th>Dealer generated return</th>
+            <td class="num">{{ "%.2f"|format(invoice.dealer_generated_return) }}</td>
+          </tr>
+          <tr>
+            <th>Deposit values</th>
+            <td class="num">{{ "%.2f"|format(invoice.deposit_values) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>GL Coding (what you send accounting)</h3>
+      <table class="table compact">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Description</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in coding %}
+            <tr>
+              <td><code>{{ line.account }}</code></td>
+              <td>{{ line.description }}</td>
+              <td class="num">{{ "%.2f"|format(line.amount) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Line Items</h3>
+      {% if lines|length == 0 %}
+        <p>No line items stored for this invoice.</p>
+      {% else %}
+        <div class="scroll-x">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Part #</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                <th>Extended</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ln in lines %}
+                <tr>
+                  <td>{{ ln.line_number }}</td>
+                  <td><code>{{ ln.part_number }}</code></td>
+                  <td>{{ ln.description }}</td>
+                  <td class="num">{{ ln.qty_billed }}</td>
+                  <td class="num">{{ "%.2f"|format(ln.unit_cost) }}</td>
+                  <td class="num">{{ "%.2f"|format(ln.extended_cost) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+
+    <p>
+      <a class="btn" href="/ui/invoices">&larr; Back to invoice list</a>
+    </p>
+  </section>
+{% endblock %}
+

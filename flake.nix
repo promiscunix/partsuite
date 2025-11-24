@@ -14,6 +14,7 @@
       ps.dateutil # python-dateutil
       ps.rich # pretty terminal output
 
+      ps.jinja2
       # NEW: API + DB stuff
       ps.fastapi
       ps.uvicorn

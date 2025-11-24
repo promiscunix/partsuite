@@ -46,6 +46,14 @@ class Invoice(SQLModel, table=True):
     # draft / reviewed / approved / posted, etc.
     status: str = "draft"
 
+    # Document type: "invoice" or "credit_memo"
+    document_type: str = "invoice"
+
+    # D2D (Dealer-to-Dealer) flag for special reporting
+    is_d2d: bool = False
+    # D2D type: "OBSOLETE", "GUARANTEED_INV", "BACKORDER", or None
+    d2d_type: Optional[str] = None
+
     # Path or filename of the original PDF
     pdf_path: Optional[str] = None
 

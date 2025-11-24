@@ -1,0 +1,155 @@
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  background: #f5f5f7;
+  color: #222;
+}
+
+header {
+  background: #222;
+  color: #fff;
+  padding: 0.75rem 0;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+header nav a {
+  color: #ddd;
+  margin-left: 1rem;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+header nav a:hover {
+  color: #fff;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+main {
+  min-height: 80vh;
+}
+
+footer {
+  border-top: 1px solid #ddd;
+  background: #fafafa;
+}
+
+footer small {
+  color: #666;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.table th,
+.table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  background: #f0f0f2;
+  font-weight: 600;
+}
+
+.table.compact th,
+.table.compact td {
+  padding: 0.25rem 0.5rem;
+}
+
+.table .num {
+  text-align: right;
+}
+
+.table .total {
+  font-weight: 700;
+}
+
+.scroll-x {
+  overflow-x: auto;
+}
+
+.btn,
+.btn-small {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 0.35rem 0.8rem;
+  background: #3b82f6;
+  color: #fff !important;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn-small {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.btn:hover,
+.btn-small:hover {
+  background: #2563eb;
+}
+
+code {
+  background: #eee;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  background: #fafafa;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.upload-area p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
