@@ -111,6 +111,77 @@ So comparisons are always apples-to-apples.
 
 ## Main scripts
 
+## Working with git (commit & push)
+
+If you want to send your local changes to GitHub, use the following quick checklist:
+
+1. **Check status** – see what changed:
+   ```bash
+   git status -sb
+   ```
+
+2. **Add files** – stage the files you want to include:
+   ```bash
+   git add <path/to/file1> <path/to/file2>
+   ```
+
+3. **Commit** – write a clear message about the change:
+   ```bash
+   git commit -m "Short summary of the change"
+   ```
+
+4. **Push** – send the commit to your GitHub branch (replace `work` with your branch name if different):
+   ```bash
+   git push origin work
+   ```
+
+If you created a new branch, run `git push -u origin <branch>` the first time so future pushes can omit the branch name.
+
+### Where to run these commands
+
+- **In this hosted workspace:** Use the built-in terminal (look for a **>_** or **Terminal/New Shell** button in the toolbar) and run commands from the repository root, e.g. `/workspace/partsuite`. All examples above assume you are in that directory first.
+- **Locally:** Open a terminal on your machine, `cd` into your clone of the repo, and run the commands normally.
+
+### No terminal? Two easy options
+
+- **GitHub Codespaces** – Click the **Code** button in your repo on GitHub and choose **Create codespace**. It opens a browser-based VS Code with a full terminal so you can run the commands above without installing anything locally.
+- **GitHub Web Editor** – Press `.` while viewing the repo on GitHub to open the web editor. You can then use the built-in **Source Control** panel to stage changes and commit without running terminal commands. For pushing, use the web editor’s push/pull buttons (shown in the lower-left status bar).
+
+### Getting your changes out of this cloud workspace
+
+If this environment already has your commits but you need them on your own machine, use one of these paths:
+
+1. **Push to GitHub from here**
+   - Create a Personal Access Token (PAT) with `repo` scope on GitHub.
+   - Add a remote that embeds the token (replace placeholders):
+     ```bash
+     git remote add personal "https://<PAT>@github.com/<your-username>/<your-repo>.git"
+     ```
+   - Push your branch from this workspace:
+     ```bash
+     git push personal work   # or your branch name
+     ```
+   - On your local machine, clone or pull from that GitHub repo as usual.
+
+2. **Create a downloadable archive** (no GitHub required)
+   - Package the current branch into a zip:
+     ```bash
+     git archive --format=zip -o /tmp/partsuite.zip HEAD
+     ```
+   - Serve the file temporarily so you can download it in your browser:
+     ```bash
+     python -m http.server 8000 --directory /tmp
+     ```
+   - Visit `http://localhost:8000/partsuite.zip` (or the forwarded port in your hosting environment) and save the file locally. Press `Ctrl+C` in the server terminal when done.
+
+3. **Generate patch files** (for email or manual import)
+   - Produce standard patch files for recent commits:
+     ```bash
+     git format-patch origin/work  # adjust the base as needed
+     ```
+   - Download or copy the `.patch` files and apply them locally with `git am <patchfile>`.
+
+
 ### 1. `invoice_pipeline.py`
 
 **Purpose:**  

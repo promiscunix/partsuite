@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from sqlmodel import SQLModel, Field
@@ -99,3 +99,16 @@ class ReceivingLine(SQLModel, table=True):
     part_number: str
     description: Optional[str] = None
     qty_received: float = 0.0
+
+
+class RadioRequest(SQLModel, table=True):
+    """A service department request for a replacement radio."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+    part_number_request: Optional[str] = None
+    part_number: Optional[str] = None
+    vin: Optional[str] = None
+    customer_number: Optional[str] = None
+    warranty_type: Optional[str] = None
