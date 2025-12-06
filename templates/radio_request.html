@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Radio Request – Invoice Master{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h2>Service Radio Request</h2>
+  <p>Provide the radio request details so the Parts team can locate and ship the correct unit.</p>
+
+  {% if submitted %}
+    <div class="alert success">
+      <strong>Request submitted.</strong> Reference #{{ request_id }} was recorded for the Parts team.
+    </div>
+  {% endif %}
+
+  <form class="form-grid" method="post" action="/ui/radio-request">
+    <div class="form-group full-width">
+      <label for="part-number-request">Request a part number</label>
+      <p class="help-text">Describe the radio you need if you want the Parts Department to supply the part number.</p>
+      <textarea id="part-number-request" name="part_number_request" rows="3" placeholder="Example: 2022 Ram 1500 with Alpine sound system">{{ form_data.get('part_number_request', '') }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="part-number">Part number</label>
+      <input id="part-number" name="part_number" type="text" placeholder="Enter part number if known" value="{{ form_data.get('part_number', '') }}">
+    </div>
+
+    <div class="form-group">
+      <label for="vin">VIN</label>
+      <input id="vin" name="vin" type="text" placeholder="17-character VIN" value="{{ form_data.get('vin', '') }}">
+    </div>
+
+    <div class="form-group">
+      <label for="customer-number">Customer number</label>
+      <input id="customer-number" name="customer_number" type="text" placeholder="Internal customer number" value="{{ form_data.get('customer_number', '') }}">
+    </div>
+
+    <div class="form-group">
+      <label for="warranty-type">Warranty type</label>
+      <select id="warranty-type" name="warranty_type">
+        <option value="">Select warranty type</option>
+        {% for value, label in warranty_options %}
+        <option value="{{ value }}" {% if form_data.get('warranty_type') == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <p class="help-text">Choose from Mopar’s standard warranty programs.</p>
+    </div>
+
+    <div class="form-actions full-width">
+      <button type="submit" class="btn">Submit Request</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

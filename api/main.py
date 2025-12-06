@@ -16,7 +16,14 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
-from core.models import Supplier, Invoice, InvoiceLine, ReceivingDocument, ReceivingLine
+from core.models import (
+    Supplier,
+    Invoice,
+    InvoiceLine,
+    ReceivingDocument,
+    ReceivingLine,
+    RadioRequest,
+)
 from core.fca_parser import parse_fca_pdf
 from core.services import process_bulk_pdf, detect_invoice_type
 from PyPDF2 import PdfReader, PdfWriter
@@ -99,6 +106,14 @@ class ReceivingLineCreate(SQLModel):
     qty_received: float
 
 
+class RadioRequestCreate(SQLModel):
+    part_number_request: Optional[str] = None
+    part_number: Optional[str] = None
+    vin: Optional[str] = None
+    customer_number: Optional[str] = None
+    warranty_type: Optional[str] = None
+
+
 # -----------------------------------------------------------------------------
 # Coding response models
 # -----------------------------------------------------------------------------
@@ -141,6 +156,13 @@ class UploadResponse(BaseModel):
 # -----------------------------------------------------------------------------
 
 app = FastAPI(title="Invoice Master API")
+
+WARRANTY_OPTIONS = [
+    ("mopar", "Mopar Warranty"),
+    ("basic", "Basic Warranty"),
+    ("customer-pay", "Customer Pay"),
+    ("service-contract", "Service Contract"),
+]
 
 # Jinja2 templates and static files (CSS)
 templates = Jinja2Templates(directory="templates")
@@ -936,6 +958,72 @@ def ui_home(request: Request) -> HTMLResponse:
         "home.html",
         {
             "request": request,
+        },
+    )
+
+
+@app.post("/radio-requests", response_model=RadioRequest)
+def create_radio_request_api(
+    request_in: RadioRequestCreate,
+    session: Session = Depends(get_session),
+) -> RadioRequest:
+    radio_request = RadioRequest(**request_in.dict())
+    session.add(radio_request)
+    session.commit()
+    session.refresh(radio_request)
+    return radio_request
+
+
+@app.get("/radio-requests", response_model=List[RadioRequest])
+def list_radio_requests(session: Session = Depends(get_session)) -> List[RadioRequest]:
+    return session.exec(select(RadioRequest).order_by(RadioRequest.created_at.desc())).all()
+
+
+@app.get("/ui/radio-request", response_class=HTMLResponse)
+def ui_radio_request(request: Request) -> HTMLResponse:
+    """Simple form for service department radio requests."""
+    return templates.TemplateResponse(
+        "radio_request.html",
+        {
+            "request": request,
+            "warranty_options": WARRANTY_OPTIONS,
+            "submitted": False,
+            "request_id": None,
+            "form_data": {},
+        },
+    )
+
+
+@app.post("/ui/radio-request", response_class=HTMLResponse)
+def submit_radio_request(
+    request: Request,
+    part_number_request: Optional[str] = Form(None),
+    part_number: Optional[str] = Form(None),
+    vin: Optional[str] = Form(None),
+    customer_number: Optional[str] = Form(None),
+    warranty_type: Optional[str] = Form(None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    request_data = RadioRequestCreate(
+        part_number_request=part_number_request,
+        part_number=part_number,
+        vin=vin,
+        customer_number=customer_number,
+        warranty_type=warranty_type,
+    )
+    radio_request = RadioRequest(**request_data.dict())
+    session.add(radio_request)
+    session.commit()
+    session.refresh(radio_request)
+
+    return templates.TemplateResponse(
+        "radio_request.html",
+        {
+            "request": request,
+            "warranty_options": WARRANTY_OPTIONS,
+            "submitted": True,
+            "request_id": radio_request.id,
+            "form_data": {},
         },
     )
 
