@@ -18,6 +18,17 @@ Everything ends up in a single `invoices.db` SQLite database.
 
 ## Dev environment (Nix)
 
+### Where the repo lives
+- **In this Codespace/VM:** the project root is `/workspace/partsuite`. From any shell here you can run:
+  ```bash
+  cd /workspace/partsuite
+  ```
+- **On your own computer:** clone the repo into whatever folder you like, then `cd` into it (for example, `~/projects/partsuite`).
+
+### How to open a shell
+- **In this Codespace/VM:** click **Terminal → New Terminal** (or press ``Ctrl+` ``) and you’ll land in `/workspace`. Then run `cd /workspace/partsuite`.
+- **On your own computer:** open your terminal app (Terminal on macOS, Command Prompt/PowerShell on Windows, etc.), `cd` into the folder where you cloned the repo, then follow the steps below.
+
 This repo includes a `flake.nix` that sets up the tools you need:
 
 - Python (with PyPDF, PyPDF2, rich, dateutil)
